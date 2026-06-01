@@ -120,8 +120,12 @@ if st.button("Reiniciar entrenamiento y borrar modelo guardado"):
 # INICIALIZAR SESSION STATE
 # =========================================================
 if "model" not in st.session_state:
-
-    loaded_model = load_model_from_gcs(bucket_name, MODEL_PATH)
+    
+    # Envolvemos en un try/except robusto para asegurar el arranque del puerto en Cloud Run
+    try:
+        loaded_model = load_model_from_gcs(bucket_name, MODEL_PATH)
+    except Exception as gcs_err:
+        loaded_model = None
 
     if loaded_model is None:
         loaded_model = new_model()
@@ -129,8 +133,6 @@ if "model" not in st.session_state:
     st.session_state.model = loaded_model
 
     # Métricas acumuladas desde que se inicia la app.
-    # Nota: aunque se cargue el modelo, las métricas se reinician,
-    # porque River no guarda aquí el historial de evaluación.
     st.session_state.metric_r2 = metrics.R2()
     st.session_state.metric_mae = metrics.MAE()
 
